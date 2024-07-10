@@ -1,11 +1,9 @@
 # Countries-in-Conflict-and-Economic-Performance
 By using dynamic panel models, I provide a macro-level understanding of the relationships between a country in conflict, not in conflict, and whether this affects the economic performance in the short and long-term.
 
-This research, as the title suggests, aims to understand the relationship between countries in and not in a conflict, whether that is a civil war or a conflict with another country, and whether countries in a conflict are perform economically. I source the economic data from the World Bank and the conflict event data from the Uppsala Conflict Data Program. I specifically look at the period between 1983-2023. The main research question follows: 
+This research, as the title suggests, aims to understand the relationship between countries in and not in a conflict, whether that is a civil war or a conflict with another country, and whether countries in a conflict are perform economically. I source the economic data from the World Bank and the conflict event data from the Uppsala Conflict Data Program. I specifically look at the period between 1983-2023. The main research questions follows: 
 
 1) Do countries that are actively in a war or conflict perform better economically than those that are not? 
-
-Further questions include: 
 2) How much does war and conflict affect the economic stability and performance of a country?
 3) Is it possible that institutional corruption and political instability is a major contributor to war and conflict in conjunction with economic performance?
 4) Is the modern historical context enough to explain war in a country and its economic performance?
