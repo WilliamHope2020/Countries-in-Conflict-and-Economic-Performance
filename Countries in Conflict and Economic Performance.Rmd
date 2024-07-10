@@ -1,0 +1,180 @@
+---
+title: "Countries at War and Economic Performance"
+author: "William Hope"
+date: "2024-07-03"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+## Objective 
+By using dynamic panel models, I provide a macro-level understanding of the relationships between a country in conflict, not in conflict, and whether this affects the economic performance in the short and long-term.
+
+## Hypothesis
+Countries at war are not as economically stable or prosperous/productive as countries not at war. War does affect a country’s ability to improve its economy and wellbeing because its expenditure is focused on military and not necessarily economic development. The idea is that more money spent towards war and conflict efforts means less money spent towards healthcare, education, technology, and so on. Institutional corruption is a likely factor but foreign intervention in developing countries also plays a role in a country’s history, such as colonialism, resulting in long lasting effects, conflict and corruption within the country’s institutions. A modern historical context may not be enough to explain and justify the above hypothesis because of long lasting conflicts and the lack of high quality data prior to the 1900s. This would result in difficulties in researching and understanding the historical implications of war and a country’s economic prosperity. However, the scope of this research is limited to the past 40 years, to understand more recent trends, and conclude whether war has a strong influence on economic development. 
+
+#$ Research Questions
+This research, as the title suggests, aims to understand the relationship between countries in and not in a conflict, whether that is a civil war or a conflict with another country, and whether countries in a conflict are perform economically. I source the economic data from the World Bank and the conflict event data from the Uppsala Conflict Data Program. I specifically look at the period between 1983-2023. The main research question follows: 
+
+1) Do countries that are actively in a war or conflict perform better economically than those that are not? 
+
+Further questions include: 
+2) How much does war and conflict affect the economic stability and performance of a country?
+3) Is it possible that institutional corruption and political instability is a major contributor to war and conflict in conjunction with economic performance?
+4) Is the modern historical context enough to explain war in a country and its economic performance?
+
+# Data
+- World Bank
+- Uppsala Conflict Data Program
+- Time period: 1983-2023
+
+## Variables
+- War status - this is a binary variable across time for each country (0 = not in war for that given year, 1 = in war for that given year)
+- Military expenditure - this variable is the expenditure on military as a percentage of GDP for each country at a given year 
+- GDP growth - this variable is the annual growth of GDP for each country at a given year 
+- GDP per capita - this variable is the gdp per capita (GDP / population) for each country at a given year
+- Political Stability - this variable measures perceptions of the likelihood of political instability and/or politically-motivated violence ranged approximately between -2.5 and 2.5 for each country at a given year, where negative values 
+
+# Methodology
+## Model Specification
+
+### Introduction
+The objective of this study is to examine the impact of military expenditure and political stability on the GDP of countries in conflict. The model aims to capture the dynamic nature of GDP by incorporating lagged GDP as a predictor.
+
+### Theoritical Framework
+Previous studies have shown that military expenditure can have both positive and negative effects on economic growth (Smith, 1980; Dunne et al., 2005). Political stability is expected to positively influence economic performance (Alesina et al., 1996).
+
+### Model Formulation
+The dynamic panel model is specified as follows:
+
+GDP_it = β_0 + β_1 * GDP_it-1 + β_2 * war_status_it + β_3 * military_expen_it + β_4 * polit_stabil_it + ε_it
+
+Where:
+- GDP_it: GDP of country i at time t
+- GDP_it-1: Lagged GDP of country i at time t-1
+- war_status_it: War status of country i at time t (binary variable)
+- military_expen_it: Military expenditure as a percentage of GDP for country i at time t
+- polit_stabil_it: Political stability of country i at time t
+- ε_it: Error term
+
+## Estimation Technique
+
+### Introduction
+To estimate the dynamic panel data model, the system Generalized Method of Moments (GMM) estimator is employed. This method is suitable for addressing endogeneity and dynamic panel bias.
+
+### Methodology
+The system GMM estimator developed by Blundell and Bond (1998) is used. This method utilizes lagged levels and lagged differences as instruments to control for endogeneity.
+
+
+
+## Data Preparation 
+```{r}
+
+# The panel data set is cleaned, and missing values are handled by listwise deletion. The data is then transformed into a panel data frame.
+
+# Load and prepare data
+data <- read.csv("C:\\Users\\savag\\.vscode\\Countries at War vs Economic Prosperity\\World Bank Economic Indicators.csv")
+
+data_clean <- data[complete.cases(data[, c("gdp_capita", "military_expen_num", "polit_stabil")]), ]
+
+```
+
+
+
+## Model Estimation
+```{r}
+
+library(plm)
+
+# The model is estimated using the `pgmm` function from the `plm` package.
+
+# Dynamic panel model using system GMM
+model_pgmm <- pgmm(gdp_capita ~ lag(gdp_capita, 1) + war_status + military_expen + polit_stabil | lag(gdp_capita, 2:3), data = data_clean, effect = "individual", model = "twosteps")
+
+summary(model_pgmm)
+
+```
+
+
+## Diagnostics and Model Fit
+```{r}
+
+# AIC and BIC are calculated to assess the model fit. The Hansen test is used to check the validity of the instruments.
+
+# Function to calculate AIC for pgmm models
+AIC_pgmm <- function(model) {
+  # Extract residuals from the model
+  residuals_list <- residuals(model)
+  residuals_numeric <- as.numeric(unlist(residuals_list))
+  
+  # Calculate Residual Sum of Squares (RSS)
+  RSS <- sum(residuals_numeric^2)
+  
+  # Number of observations and number of parameters
+  n <- length(residuals_numeric)
+  k <- length(coef(model))
+  
+  # Calculate log-likelihood approximation
+  logL <- -n/2 * (log(2 * pi) + log(RSS/n) + 1)
+  
+  # Calculate AIC
+  AIC_value <- -2 * logL + 2 * k
+  return(AIC_value)
+}
+
+# Function to calculate BIC for pgmm models
+BIC_pgmm <- function(model) {
+  # Extract residuals from the model
+  residuals_list <- residuals(model)
+  residuals_numeric <- as.numeric(unlist(residuals_list))
+  
+  # Calculate Residual Sum of Squares (RSS)
+  RSS <- sum(residuals_numeric^2)
+  
+  # Number of observations and number of parameters
+  n <- length(residuals_numeric)
+  k <- length(coef(model))
+  
+  # Calculate log-likelihood approximation
+  logL <- -n/2 * (log(2 * pi) + log(RSS/n) + 1)
+  
+  # Calculate BIC
+  BIC_value <- -2 * logL + log(n) * k
+  return(BIC_value)
+}
+
+# Calculate AIC and BIC
+aic_pgmm <- AIC_pgmm(model_pgmm)
+bic_pgmm <- BIC_pgmm(model_pgmm)
+    
+cat("Dynamic Panel Model (GMM): AIC =", aic_pgmm, ", BIC =", bic_pgmm, "\n")
+
+```
+
+
+# Results
+## Interpretation
+```{r}
+
+
+
+```
+
+
+# Discussion
+## Implications
+
+
+## Limitations
+Due to the data being between time period 1983-2023, it is possible that long-term effects that last outside of this period can still have an influence, such as colonization and other qualitative aspects not recorded in the dataset. Additionally, much of the data is incomplete for many countries due to low infrastructure capabilities. 
+
+# Conclusion 
+## Summary
+
+
+## Future research 
+
+
